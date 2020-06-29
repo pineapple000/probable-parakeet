@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% load imagekit %}
+
+{% block content %}
+  <h2>{{ article.title|title }}</h2>
+  {% thumbnail '0x480' article.picture %}
+  <p>
+    {% if article.author.picture %}
+      {% thumbnail '0x48' article.author.picture %}
+    {% endif %} By {{ article.author|title }}</p>
+  <small>
+    {{ article.updated_on|date:"F d, Y" }} Updated
+    {{ article.updated_on|time:"h:i a T" }}
+  </small>
+  <p>{{ article.body }}</p>
+  <hr>
+  {% for comment in comments %}
+    <p>
+      {% if comment.user.picture %}
+        {% thumbnail '0x32' comment.user.picture %}
+      {% endif %}
+      <small>{{ comment.user|title }}:</small></p>
+    {% if comment.is_flagged and not request.user.userprofile.is_author %}
+      <p><i>This comment was flagged and removed.</i></p>
+      {% else %}
+      <p>{{ comment.comment|safe }}</p>
+    {% endif %}
+    <hr>
+  {% endfor %}
+  {% if request.user.is_authenticated %}
+    <form action="{% url 'articles:comment' slug=article.slug %}" method="post">
+      {% csrf_token %}
+      {{ form }}
+      <input type="submit" value="Comment">
+    </form>
+  {% endif %}
+{% endblock %}
+
